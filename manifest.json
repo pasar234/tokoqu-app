@@ -1,0 +1,18 @@
+{
+  "name": "Manajemen Stok Pintar",
+  "short_name": "StokApp",
+  "description": "Aplikasi pencatatan stok dan harga produk sederhana",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/263/263115.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

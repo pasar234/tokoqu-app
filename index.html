@@ -3,146 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stok Pintar</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Stok Pintar Manajemen</title>
+    <link rel="manifest" href="manifest.json">
     <style>
-        body { background-color: #f3f4f6; font-family: sans-serif; }
+        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; }
+        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
+        .tab { padding: 10px 20px; background: #ddd; border-radius: 5px; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: #2563eb; color: white; }
+        input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        .btn-save { background: #2563eb; color: white; font-weight: bold; cursor: pointer; }
+        .btn-backup { background: #1f2937; color: white; margin-top: 10px; }
+        .btn-restore { background: #f97316; color: white; }
     </style>
 </head>
-<body class="p-4">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
-        <h2 class="text-2xl font-bold mb-4 text-center text-blue-600">Manajemen Produk</h2>
-        
-        <div class="space-y-3 mb-6 bg-blue-50 p-4 rounded-lg">
-            <input type="hidden" id="editIndex">
-            <input type="text" id="kode" placeholder="Kode Produk" class="w-full p-2 border rounded">
-            <input type="text" id="nama" placeholder="Nama Produk" class="w-full p-2 border rounded">
-            <div class="grid grid-cols-2 gap-2">
-                <input type="number" id="hargaDasar" placeholder="Harga Dasar" class="p-2 border rounded">
-                <input type="number" id="hargaJual" placeholder="Harga Jual" class="p-2 border rounded">
-            </div>
-            <button onclick="simpanProduk()" id="btnSimpan" class="w-full bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue-700 uppercase">Simpan Produk</button>
-        </div>
+<body>
 
-        <div class="mb-4">
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </span>
-                <input type="text" id="cariInput" onkeyup="render()" placeholder="Cari nama atau kode produk..." class="w-full pl-10 p-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none">
-            </div>
-        </div>
+    <h2 style="color: #2563eb; text-align: center;">Manajemen Produk</h2>
 
-        <div id="daftarProduk" class="space-y-4">
-            </div>
+    <div class="nav-tabs">
+        <div class="tab active" onclick="filterKat('NARITA')">NARITA</div>
+        <div class="tab" onclick="filterKat('VR')">VR</div>
+        <div class="tab" onclick="filterKat('KUDUS')">KUDUS</div>
+        <div class="tab" onclick="filterKat('LAIN')">LAIN LAIN</div>
+    </div>
+
+    <div class="card">
+        <h3>TAMBAH PRODUK</h3>
+        <input type="text" id="kode" placeholder="Kode Produk">
+        <input type="text" id="nama" placeholder="Nama Produk">
+        <div style="display: flex; gap: 10px;">
+            <input type="number" id="hargaBeli" placeholder="Dasar">
+            <input type="number" id="hargaJual" placeholder="Harga Jual">
+        </div>
+        <select id="kategori">
+            <option value="NARITA">NARITA</option>
+            <option value="VR">VR</option>
+            <option value="KUDUS">KUDUS</option>
+            <option value="LAIN">LAIN LAIN</option>
+        </select>
+        <button class="btn-save" onclick="simpanProduk()">SIMPAN PRODUK</button>
+    </div>
+
+    <div class="card">
+        <h3>PENCADANGAN DATA</h3>
+        <button class="btn-backup" onclick="exportData()">DOWNLOAD BACKUP (.json)</button>
+        <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+        <button class="btn-restore" onclick="document.getElementById('importFile').click()">PILIH FILE BACKUP</button>
     </div>
 
     <script>
-        let produkList = JSON.parse(localStorage.getItem('produk')) || [];
-
+        // Logika sederhana untuk simpan ke LocalStorage
         function simpanProduk() {
-            const index = document.getElementById('editIndex').value;
             const data = {
                 kode: document.getElementById('kode').value,
                 nama: document.getElementById('nama').value,
-                dasar: document.getElementById('hargaDasar').value,
+                beli: document.getElementById('hargaBeli').value,
                 jual: document.getElementById('hargaJual').value,
-                stok: index !== "" ? produkList[index].stok : 0
+                kat: document.getElementById('kategori').value
             };
-
-            if (!data.kode || !data.nama) return alert("Kode dan Nama harus diisi!");
-
-            if (index === "") {
-                produkList.push(data);
-            } else {
-                produkList[index] = data;
-                document.getElementById('editIndex').value = "";
-                document.getElementById('btnSimpan').innerText = "SIMPAN PRODUK";
-            }
-
-            saveAndRender();
-            resetForm();
+            let list = JSON.parse(localStorage.getItem('stok_data')) || [];
+            list.push(data);
+            localStorage.setItem('stok_data', JSON.stringify(list));
+            alert('Produk Berhasil Disimpan!');
         }
 
-        function ubahStok(index, jumlah) {
-            produkList[index].stok = parseInt(produkList[index].stok) + jumlah;
-            if (produkList[index].stok < 0) produkList[index].stok = 0;
-            saveAndRender();
+        // Fitur Backup
+        function exportData() {
+            const data = localStorage.getItem('stok_data');
+            const blob = new Blob([data], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'backup_stok.json';
+            a.click();
         }
 
-        function hapus(index) {
-            if(confirm('Hapus produk ini?')) {
-                produkList.splice(index, 1);
-                saveAndRender();
-            }
+        // Fitur Restore
+        function importData(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                localStorage.setItem('stok_data', reader.result);
+                alert('Data Berhasil Dipulihkan!');
+                location.reload();
+            };
+            reader.readAsText(event.target.files[0]);
         }
-
-        function edit(index) {
-            const p = produkList[index];
-            document.getElementById('kode').value = p.kode;
-            document.getElementById('nama').value = p.nama;
-            document.getElementById('hargaDasar').value = p.dasar;
-            document.getElementById('hargaJual').value = p.jual;
-            document.getElementById('editIndex').value = index;
-            document.getElementById('btnSimpan').innerText = "UPDATE DATA";
-            window.scrollTo(0,0);
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('produk', JSON.stringify(produkList));
-            render();
-        }
-
-        function resetForm() {
-            document.getElementById('kode').value = "";
-            document.getElementById('nama').value = "";
-            document.getElementById('hargaDasar').value = "";
-            document.getElementById('hargaJual').value = "";
-        }
-
-        function render() {
-            const container = document.getElementById('daftarProduk');
-            const keyword = document.getElementById('cariInput').value.toLowerCase();
-            container.innerHTML = "";
-            
-            produkList.forEach((p, i) => {
-                // Logika Filter Pencarian
-                if (p.nama.toLowerCase().includes(keyword) || p.kode.toLowerCase().includes(keyword)) {
-                    container.innerHTML += `
-                        <div class="border-b pb-3 mb-3 bg-white p-2 rounded shadow-sm">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="font-bold text-lg text-gray-800">${p.nama} <span class="text-xs font-normal text-gray-400">#${p.kode}</span></p>
-                                    <p class="text-sm text-gray-500 font-mono">Beli: ${p.dasar} | Jual: ${p.jual}</p>
-                                </div>
-                                <div class="text-right bg-gray-50 p-1 rounded border">
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Stok</p>
-                                    <div class="flex items-center gap-2">
-                                        <button onclick="ubahStok(${i}, -1)" class="bg-red-500 text-white w-6 h-6 rounded-full font-bold">-</button>
-                                        <span class="font-bold text-lg min-w-[20px] text-center">${p.stok}</span>
-                                        <button onclick="ubahStok(${i}, 1)" class="bg-green-500 text-white w-6 h-6 rounded-full font-bold">+</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2 flex gap-4">
-                                <button onclick="edit(${i})" class="text-xs font-bold text-blue-600 uppercase tracking-wider">Edit</button>
-                                <button onclick="hapus(${i})" class="text-xs font-bold text-red-400 uppercase tracking-wider">Hapus</button>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-        }
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-        const linkManifest = document.createElement('link');
-        linkManifest.rel = 'manifest';
-        linkManifest.href = 'manifest.json';
-        document.head.appendChild(linkManifest);
-
-        render();
     </script>
 </body>
 </html>

@@ -1,6 +1,5 @@
-const CACHE_NAME = 'stok-pintar-v3';
-const STATIC_CACHE = 'static-v3';
-const DYNAMIC_CACHE = 'dynamic-v3';
+const CACHE_NAME = 'stok-pintar-v1';
+const STATIC_CACHE = 'static-v1';
 
 const staticAssets = [
   './',
@@ -31,7 +30,7 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => {
       return Promise.all(
-        keys.filter(key => key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
+        keys.filter(key => key !== STATIC_CACHE)
           .map(key => caches.delete(key))
       );
     })
@@ -60,15 +59,6 @@ self.addEventListener('fetch', event => {
               return networkResponse;
             }
 
-            // Clone the response
-            const responseToCache = networkResponse.clone();
-
-            // Add to dynamic cache
-            caches.open(DYNAMIC_CACHE)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
             return networkResponse;
           })
           .catch(() => {
@@ -79,11 +69,4 @@ self.addEventListener('fetch', event => {
           });
       })
   );
-});
-
-// Background Sync (for future offline capabilities)
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-products') {
-    console.log('Background sync for products');
-  }
 });

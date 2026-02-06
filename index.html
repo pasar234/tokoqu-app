@@ -10,745 +10,630 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-        }
-        
-        :root {
-            --primary: #2563eb;
-            --primary-light: #60a5fa;
-            --primary-dark: #1d4ed8;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --dark: #1e293b;
-            --light: #f8fafc;
-            --gray: #64748b;
-            --border: #e2e8f0;
-            --shadow: rgba(0, 0, 0, 0.05);
-            --radius: 12px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background-color: #f1f5f9;
-            color: var(--dark);
-            max-width: 500px;
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
             margin: 0 auto;
-            min-height: 100vh;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
         }
         
-        /* Header */
-        .app-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
             color: white;
-            padding: 20px 16px;
+            padding: 25px 30px;
             text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
-        .app-header h1 {
-            font-size: 22px;
-            font-weight: 800;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
         
-        .app-subtitle {
-            font-size: 13px;
+        .header p {
             opacity: 0.9;
-            font-weight: 500;
+            font-size: 15px;
         }
         
-        /* Navigation */
-        .main-nav {
+        .menu-bar {
             display: flex;
-            background: white;
-            padding: 10px 8px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 80px;
-            z-index: 99;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            justify-content: center;
+            background-color: #f0f2f5;
+            padding: 15px;
+            border-bottom: 1px solid #e1e5eb;
         }
         
-        .main-nav::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .nav-btn {
-            flex: 1;
-            min-width: 75px;
-            background: none;
-            border: none;
-            padding: 10px 6px;
-            color: var(--gray);
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            cursor: pointer;
+        .menu-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
-            border-radius: 8px;
-            transition: all 0.2s;
+            margin: 0 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
         
-        .nav-btn i {
-            font-size: 18px;
+        .menu-item:hover {
+            transform: translateY(-3px);
         }
         
-        .nav-btn.active {
-            color: var(--primary);
-            background: rgba(37, 99, 235, 0.08);
+        .menu-icon {
+            width: 50px;
+            height: 50px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: bold;
         }
         
-        .nav-btn:hover:not(.active) {
-            background: rgba(0, 0, 0, 0.02);
+        .menu-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2c3e50;
         }
         
-        /* Main Content */
-        .main-content {
-            padding: 16px;
-            padding-bottom: 30px;
+        .search-section {
+            padding: 20px 30px;
+            background-color: white;
+            border-bottom: 1px solid #e1e5eb;
         }
         
-        .page {
-            display: none;
-        }
-        
-        .page.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Search Bar */
-        .search-container {
+        .search-box {
             position: relative;
-            margin-bottom: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            font-size: 15px;
+            background-color: #f8f9fa;
+            transition: all 0.3s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #4a6491;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(74, 100, 145, 0.1);
         }
         
         .search-icon {
             position: absolute;
-            left: 16px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--gray);
-            z-index: 2;
+            color: #888;
         }
         
-        .search-input {
-            width: 100%;
-            padding: 15px 15px 15px 50px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            font-size: 16px;
-            background: white;
-            color: var(--dark);
-            font-weight: 500;
-            transition: all 0.2s;
+        .products-section {
+            padding: 20px 30px 30px;
         }
         
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        
-        /* Product List */
-        .product-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        /* NEW LAYOUT: Product Card with Side Controls */
-        .product-card {
-            background: white;
-            border-radius: 14px;
-            padding: 18px;
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-weight: 600;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            gap: 16px;
-            box-shadow: 0 2px 8px var(--shadow);
-            border: 1px solid var(--border);
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
+            align-items: center;
         }
         
-        .product-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-        }
-        
-        /* Left Side: Product Info */
-        .product-info {
-            flex: 1;
-            min-width: 0;
-            padding-right: 10px;
-        }
-        
-        .product-header {
+        .add-product-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
+            transition: all 0.3s;
         }
         
-        .category-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+        .add-product-btn:hover {
+            background-color: #4a6491;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
-        .category-narita { background: #dbeafe; color: #1e40af; }
-        .category-vr { background: #f0f9ff; color: #0369a1; }
-        .category-kudus { background: #fef3c7; color: #92400e; }
-        .category-lain { background: #f3e8ff; color: #6b21a8; }
+        .add-product-btn i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .products-table th {
+            background-color: #f8f9fa;
+            padding: 16px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #e1e5eb;
+            font-size: 15px;
+        }
+        
+        .products-table td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #e1e5eb;
+            vertical-align: middle;
+        }
         
         .product-name {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--dark);
-            line-height: 1.4;
-            margin-bottom: 6px;
-            word-break: break-word;
+            font-weight: 500;
+            font-size: 16px;
+            color: #2c3e50;
         }
         
-        .product-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            font-size: 13px;
-            color: var(--gray);
-            flex-wrap: wrap;
+        .price-column {
+            color: #4a6491;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
         }
         
-        .product-code {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .price-column:hover {
+            color: #2c3e50;
+            text-decoration: underline;
         }
         
-        .product-price {
-            margin-top: 8px;
-        }
-        
-        .price-label {
-            font-size: 11px;
-            color: var(--gray);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 3px;
-        }
-        
-        .buy-price {
-            font-size: 13px;
-            color: var(--gray);
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .sell-price {
-            font-size: 24px;
-            font-weight: 900;
-            color: var(--dark);
-            line-height: 1;
-        }
-        
-        /* Right Side: Controls */
-        .product-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 12px;
-            min-width: 130px;
-        }
-        
-        /* Stock Control */
         .stock-control {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 10px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .stock-label {
-            font-size: 10px;
-            color: var(--gray);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
-        }
-        
-        .stock-value {
-            font-size: 26px;
-            font-weight: 800;
-            color: var(--dark);
-            margin: 5px 0;
-            line-height: 1;
-        }
-        
-        .stock-buttons {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 8px;
+            align-items: center;
+            justify-content: flex-start;
         }
         
         .stock-btn {
             width: 36px;
             height: 36px;
-            border: 2px solid var(--border);
-            background: white;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--dark);
-            cursor: pointer;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            background-color: white;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: #555;
             transition: all 0.2s;
         }
         
         .stock-btn:hover {
-            background: #f1f5f9;
-            border-color: var(--primary);
-            color: var(--primary);
+            background-color: #f0f2f5;
         }
         
         .stock-btn:active {
             transform: scale(0.95);
         }
         
-        /* Delete Button */
-        .delete-control {
-            width: 100%;
-        }
-        
-        .delete-btn {
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            color: #991b1b;
-            border: none;
-            padding: 11px 16px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            transition: all 0.2s;
-            letter-spacing: 0.3px;
-            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
-        }
-        
-        .delete-btn:hover {
-            background: linear-gradient(135deg, #fecaca, #fca5a5);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.15);
-        }
-        
-        .delete-btn:active {
-            transform: translateY(0);
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--gray);
-        }
-        
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
-        
-        .empty-state h3 {
+        .stock-count {
+            margin: 0 15px;
             font-size: 18px;
             font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--dark);
-        }
-        
-        .empty-state p {
-            font-size: 14px;
-        }
-        
-        /* Add Page */
-        .add-form {
-            background: white;
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px var(--shadow);
-            border: 1px solid var(--border);
-        }
-        
-        .form-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .form-group {
-            margin-bottom: 16px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .form-input, .form-select {
-            width: 100%;
-            padding: 14px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            font-size: 16px;
-            background: white;
-            color: var(--dark);
-            transition: all 0.2s;
-        }
-        
-        .form-input:focus, .form-select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border: none;
-            padding: 16px 24px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 10px -1px rgba(37, 99, 235, 0.3);
-        }
-        
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-        
-        /* Backup Section */
-        .backup-card {
-            background: white;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 2px 8px var(--shadow);
-            border: 1px solid var(--border);
+            min-width: 40px;
             text-align: center;
+            color: #2c3e50;
         }
         
-        .backup-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--gray);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .backup-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        
-        .btn-backup, .btn-restore {
-            padding: 15px;
-            border-radius: 10px;
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.2s;
-        }
-        
-        .btn-backup {
-            background: #334155;
-            color: white;
-        }
-        
-        .btn-restore {
-            background: #f97316;
-            color: white;
-        }
-        
-        .btn-backup:hover, .btn-restore:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .backup-note {
-            font-size: 12px;
-            color: var(--gray);
-            margin-top: 12px;
-            line-height: 1.5;
-        }
-        
-        /* Modal */
-        .modal {
-            display: none;
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
         }
         
-        .modal.active {
-            display: flex;
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
         
-        .modal-content {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            animation: modalIn 0.3s ease;
+        .modal {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
         }
         
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+        .modal-overlay.active .modal {
+            transform: translateY(0);
         }
         
         .modal-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .modal-message {
-            color: var(--gray);
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .btn-outline, .btn-danger {
-            flex: 1;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 15px;
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #2c3e50;
             font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
         }
         
-        .btn-outline {
-            background: white;
-            color: var(--dark);
-            border: 2px solid var(--border);
+        .form-group {
+            margin-bottom: 20px;
         }
         
-        .btn-outline:hover {
-            background: var(--light);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger), #dc2626);
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
-        }
-        
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 10px -1px rgba(239, 68, 68, 0.3);
-        }
-        
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--dark);
-            color: white;
-            padding: 14px 20px;
-            border-radius: 10px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            z-index: 1000;
-            opacity: 0;
-            transition: all 0.3s;
-            min-width: 260px;
-            text-align: center;
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: 500;
-            max-width: 90%;
+            color: #555;
         }
         
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
         }
         
-        /* Responsive */
-        @media (max-width: 480px) {
-            .product-card {
-                flex-direction: column;
-                gap: 16px;
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a6491;
+            box-shadow: 0 0 0 3px rgba(74, 100, 145, 0.1);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 15px;
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-cancel {
+            background-color: #f0f2f5;
+            color: #555;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #e1e5eb;
+        }
+        
+        .btn-save {
+            background-color: #2c3e50;
+            color: white;
+        }
+        
+        .btn-save:hover {
+            background-color: #4a6491;
+        }
+        
+        .currency {
+            font-size: 14px;
+            color: #777;
+            margin-right: 3px;
+        }
+        
+        @media (max-width: 768px) {
+            .menu-bar {
+                flex-wrap: wrap;
             }
             
-            .product-controls {
-                flex-direction: row;
-                align-items: center;
-                width: 100%;
-                min-width: 100%;
-                gap: 12px;
+            .menu-item {
+                margin: 10px;
+                min-width: 80px;
             }
             
-            .stock-control {
-                flex: 1;
+            .products-table {
+                display: block;
+                overflow-x: auto;
             }
             
-            .delete-control {
-                flex: 1;
-            }
-            
-            .sell-price {
-                font-size: 22px;
-            }
-            
-            .stock-value {
+            .header h1 {
                 font-size: 24px;
             }
             
-            .product-name {
-                font-size: 16px;
-            }
-            
-            .main-content {
-                padding: 14px;
+            .container {
+                border-radius: 10px;
             }
         }
         
-        /* Animation for stock change */
-        @keyframes stockChange {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+        .product-row:hover {
+            background-color: #f9fafb;
         }
         
-        .stock-change {
-            animation: stockChange 0.3s ease;
+        .price-tooltip {
+            position: absolute;
+            background-color: #2c3e50;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .price-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #2c3e50 transparent transparent transparent;
+        }
+        
+        .price-column:hover .price-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 14px;
+            border-top: 1px solid #e1e5eb;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="app-header">
-        <h1><i class="fas fa-boxes-stacked"></i> Stok Pintar</h1>
-        <p class="app-subtitle">Manajemen Stok Produk</p>
+    <div class="container">
+        <div class="header">
+            <h1>Stok Pintar</h1>
+            <p>Manajemen Stok Produk</p>
+        </div>
+        
+        <div class="menu-bar">
+            <div class="menu-item" id="tambahBtn">
+                <div class="menu-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="menu-label">TAMBAH</div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon">N</div>
+                <div class="menu-label">NARITA</div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon">VR</div>
+                <div class="menu-label">VR</div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon">K</div>
+                <div class="menu-label">KUDUS</div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon">
+                    <i class="fas fa-ellipsis-h"></i>
+                </div>
+                <div class="menu-label">LAIN</div>
+            </div>
+        </div>
+        
+        <div class="search-section">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Cari nama atau produk...">
+            </div>
+        </div>
+        
+        <div class="products-section">
+            <div class="section-title">
+                <span>Daftar Produk</span>
+                <button class="add-product-btn" id="addProductBtn">
+                    <i class="fas fa-plus"></i> Tambah Produk
+                </button>
+            </div>
+            
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Nama Produk</th>
+                        <th style="width: 30%;">Harga</th>
+                        <th style="width: 30%;">Stok</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                    <!-- Data produk akan dimuat di sini -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <p>Stok Pintar &copy; 2023 - Sistem Manajemen Stok Produk</p>
+        </div>
     </div>
     
-    <!-- Navigation -->
-    <nav class="main-nav">
-        <button class="nav-btn active" data-page="tambah">
-            <i class="fas fa-plus-circle"></i>
-            <span>Tambah</span>
-        </button>
-        <button class="nav-btn" data-page="NARITA">
-            <i class="fas fa-box"></i>
-            <span>Narita</span>
-        </button>
-        <button class="nav-btn" data-page="VR">
-            <i class="fas fa-box"></i>
-            <span>VR</span>
-        </button>
-        <button class="nav-btn" data-page="KUDUS">
-            <i class="fas fa-box"></i>
-            <span>Kudus</span>
-        </button>
-        <button class="nav-btn" data-page="LAIN">
-            <i class="fas fa-boxes-stacked"></i>
-            <span>Lain</span>
-        </button>
-    </nav>
+    <!-- Modal untuk mengedit harga -->
+    <div class="modal-overlay" id="priceModal">
+        <div class="modal">
+            <h2 class="modal-title">Edit Harga Produk</h2>
+            <div class="form-group">
+                <label for="productName">Nama Produk</label>
+                <input type="text" id="productName" readonly>
+            </div>
+            <div class="form-group">
+                <label for="basePrice">Harga Dasar</label>
+                <input type="number" id="basePrice" placeholder="Masukkan harga dasar">
+            </div>
+            <div class="form-group">
+                <label for="sellingPrice">Harga Jual</label>
+                <input type="number" id="sellingPrice" placeholder="Masukkan harga jual">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-cancel" id="cancelPriceBtn">Batal</button>
+                <button class="btn btn-save" id="savePriceBtn">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
     
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Add Product Page -->
-        <div id="page-tambah" class="pag
+    <!-- Modal untuk menambah produk -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <h2 class="modal-title">Tambah Produk Baru</h2>
+            <div class="form-group">
+                <label for="newProductName">Nama Produk</label>
+                <input type="text" id="newProductName" placeholder="Masukkan nama produk">
+            </div>
+            <div class="form-group">
+                <label for="newBasePrice">Harga Dasar</label>
+                <input type="number" id="newBasePrice" placeholder="Masukkan harga dasar">
+            </div>
+            <div class="form-group">
+                <label for="newSellingPrice">Harga Jual</label>
+                <input type="number" id="newSellingPrice" placeholder="Masukkan harga jual">
+            </div>
+            <div class="form-group">
+                <label for="newStock">Jumlah Stok Awal</label>
+                <input type="number" id="newStock" placeholder="Masukkan jumlah stok" value="0">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-cancel" id="cancelAddBtn">Batal</button>
+                <button class="btn btn-save" id="saveAddBtn">Tambahkan Produk</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data produk awal
+        let products = [
+            { id: 1, name: "Nama Produk A", basePrice: 20000, sellingPrice: 25000, stock: 0 },
+            { id: 2, name: "Nama Produk B", basePrice: 28000, sellingPrice: 32500, stock: 5 },
+            { id: 3, name: "Produk C", basePrice: 15000, sellingPrice: 20000, stock: 12 },
+            { id: 4, name: "Produk D", basePrice: 35000, sellingPrice: 42000, stock: 3 },
+            { id: 5, name: "Produk E", basePrice: 12000, sellingPrice: 15000, stock: 8 }
+        ];
+        
+        // Elemen DOM
+        const productsTableBody = document.getElementById('productsTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const priceModal = document.getElementById('priceModal');
+        const addModal = document.getElementById('addModal');
+        const cancelPriceBtn = document.getElementById('cancelPriceBtn');
+        const savePriceBtn = document.getElementById('savePriceBtn');
+        const cancelAddBtn = document.getElementById('cancelAddBtn');
+        const saveAddBtn = document.getElementById('saveAddBtn');
+        const addProductBtn = document.getElementById('addProductBtn');
+        const tambahBtn = document.getElementById('tambahBtn');
+        
+        // Variabel untuk produk yang sedang diedit
+        let currentEditingProduct = null;
+        
+        // Format angka menjadi format mata uang Indonesia
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+        
+        // Render tabel produk
+        function renderProducts(filter = '') {
+            productsTableBody.innerHTML = '';
+            
+            const filteredProducts = products.filter(product => 
+                product.name.toLowerCase().includes(filter.toLowerCase())
+            );
+            
+            filteredProducts.forEach(product => {
+                const row = document.createElement('tr');
+                row.className = 'product-row';
+                row.innerHTML = `
+                    <td class="product-name">${product.name}</td>
+                    <td class="price-column" data-product-id="${product.id}">
+                        ${formatCurrency(product.sellingPrice)}
+                        <div class="price-tooltip">Klik untuk mengedit harga</div>
+                    </td>
+                    <td>
+                        <div class="stock-control">
+                            <button class="stock-btn decrease-btn" data-id="${product.id}">-</button>
+                            <span class="stock-count" data-id="${product.id}">${product.stock}</span>
+                            <button class="stock-btn increase-btn" data-id="${product.id}">+</button>
+                        </div>
+                    </td>
+                `;
+                productsTableBody.appendChild(row);
+            });
+            
+            // Tambahkan event listener untuk tombol stok
+            document.querySelectorAll('.decrease-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    updateStock(productId, -1);
+                });
+            });
+            
+            document.querySelectorAll('.increase-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    updateStock(productId, 1);
+                });
+            });
+            
+            // Tambahkan event listener untuk kolom harga
+            document.querySelectorAll('.price-column').forEach(col => {
+                col.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-product-id'));
+                    openPriceModal(productId);
+                });
+            });
+        }
+        
+        // Update stok produk
+        function updateStock(productId, change) {
+            const productIndex = products.findIndex(p => p.id === productId);
+            if (productIndex !== -1) {
+                const newStock = products[productIndex].stock + change;
+                // Pastikan stok tidak negatif
+                products[productIndex].stock = 

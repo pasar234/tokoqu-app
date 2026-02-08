@@ -2,7 +2,7 @@
 <html lang="id" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Aplikasi manajemen stok produk NARITA, VR, KUDUS, LAIN">
     <title>Stok Pintar - Manajemen Stok</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,43 +11,40 @@
     <meta name="theme-color" content="#2563eb">
     
     <style>
-        /* Efek khusus untuk aplikasi */
-        .harga-value {
-            cursor: pointer;
-            transition: all 0.2s ease;
+        /* KODULAR FIX - Touch Events */
+        * {
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+            -webkit-touch-callout: none;
         }
         
-        .harga-value:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        /* Button Active States */
+        button:active {
+            opacity: 0.7 !important;
+            transform: scale(0.98) !important;
         }
         
-        .harga-value.jual {
-            animation: pulse-red 2s infinite;
+        /* Loading Animation */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
         }
         
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
-            70% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
-        }
-        
-        .product-card {
-            transition: all 0.3s ease;
-        }
-        
-        .stock-value.changed {
-            animation: stockChange 0.5s ease;
-        }
-        
-        @keyframes stockChange {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        .loading {
+            animation: pulse 1.5s infinite;
         }
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2563eb; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
+        <div style="font-size: 40px; margin-bottom: 20px;">
+            <i class="fas fa-boxes loading"></i>
+        </div>
+        <h2 style="margin-bottom: 10px;">Stok Pintar</h2>
+        <p>Memuat aplikasi...</p>
+    </div>
+
     <div class="app-container">
         <!-- Header -->
         <header class="app-header">
@@ -71,23 +68,23 @@
         <!-- Navigation -->
         <nav class="main-nav">
             <div class="nav-container">
-                <button class="nav-btn active" data-page="home" title="Halaman utama">
+                <button class="nav-btn active" data-page="home">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
-                <button class="nav-btn" data-page="narita" title="Produk Narita">
+                <button class="nav-btn" data-page="narita">
                     <i class="fas fa-tag"></i>
                     NARITA
                 </button>
-                <button class="nav-btn" data-page="vr" title="Produk VR">
+                <button class="nav-btn" data-page="vr">
                     <i class="fas fa-tag"></i>
                     VR
                 </button>
-                <button class="nav-btn" data-page="kudus" title="Produk Kudus">
+                <button class="nav-btn" data-page="kudus">
                     <i class="fas fa-tag"></i>
                     KUDUS
                 </button>
-                <button class="nav-btn" data-page="lain" title="Produk Lainnya">
+                <button class="nav-btn" data-page="lain">
                     <i class="fas fa-tag"></i>
                     LAIN
                 </button>
@@ -105,7 +102,7 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label for="nama">Nama Produk *</label>
-                            <input type="text" id="nama" class="form-input" placeholder="Contoh: Bodi Supra" required autofocus>
+                            <input type="text" id="nama" class="form-input" placeholder="Contoh: Bodi Supra" required>
                         </div>
                         <div class="form-group">
                             <label for="kode">Kode Produk</label>
@@ -133,10 +130,6 @@
                         <button class="btn-primary btn-block" id="simpanProduk">
                             <i class="fas fa-save"></i> Simpan Produk
                         </button>
-                        <p class="info-text">
-                            <i class="fas fa-keyboard"></i>
-                            Tekan <kbd>Enter</kbd> untuk simpan cepat
-                        </p>
                     </div>
                 </div>
 
@@ -157,10 +150,6 @@
                         <button class="btn-warning btn-block" id="clearDataBtn" style="margin-top: 10px;">
                             <i class="fas fa-trash-alt"></i> Hapus Semua Data
                         </button>
-                        <p class="info-text">
-                            <i class="fas fa-info-circle"></i>
-                            Backup data secara berkala untuk keamanan
-                        </p>
                     </div>
                 </div>
 
@@ -170,13 +159,13 @@
                     </div>
                     <div class="card-body">
                         <div class="stats-grid" id="statsContainer">
-                            <!-- Statistik akan diisi oleh JavaScript -->
+                            <!-- Statistik akan diisi -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- List Page (NARITA/VR/KUDUS/LAIN) -->
+            <!-- List Page -->
             <div class="page" id="page-list">
                 <div class="card">
                     <div class="card-header">
@@ -186,11 +175,7 @@
                         <div class="search-container">
                             <i class="fas fa-search search-icon"></i>
                             <input type="text" id="cari" class="search-input" 
-                                   placeholder="Cari nama atau kode produk..." 
-                                   autocomplete="off">
-                            <button class="btn-icon" id="clearSearch" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: none;">
-                                <i class="fas fa-times"></i>
-                            </button>
+                                   placeholder="Cari nama atau kode produk...">
                         </div>
                     </div>
                 </div>
@@ -203,14 +188,12 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- Empty State -->
                         <div class="empty-state" id="emptyState">
                             <i class="fas fa-box-open"></i>
                             <h3>Belum ada produk</h3>
                             <p>Tambahkan produk baru di halaman Home</p>
                         </div>
 
-                        <!-- Products List -->
                         <div id="list-container"></div>
                     </div>
                 </div>
@@ -218,7 +201,7 @@
         </main>
     </div>
 
-    <!-- Confirmation Modal -->
+    <!-- Modals -->
     <div class="modal" id="confirmModal">
         <div class="modal-content">
             <h2 id="confirmTitle">Konfirmasi</h2>
@@ -230,7 +213,6 @@
         </div>
     </div>
 
-    <!-- Edit Price Modal -->
     <div class="modal" id="editPriceModal">
         <div class="modal-content">
             <h2><i class="fas fa-edit"></i> Edit Harga Produk</h2>
@@ -238,51 +220,56 @@
             
             <div class="form-group">
                 <label for="editHargaBeli">Harga Beli (Rp)</label>
-                <input type="number" id="editHargaBeli" class="form-input" min="0" placeholder="Harga beli">
+                <input type="number" id="editHargaBeli" class="form-input" min="0">
             </div>
             
             <div class="form-group">
                 <label for="editHargaJual">Harga Jual (Rp) *</label>
-                <input type="number" id="editHargaJual" class="form-input" min="0" placeholder="Harga jual" required>
+                <input type="number" id="editHargaJual" class="form-input" min="0" required>
             </div>
             
             <div class="modal-actions">
                 <button class="btn-outline" id="cancelEditBtn">Batal</button>
-                <button class="btn-primary" id="saveEditBtn">Simpan Perubahan</button>
+                <button class="btn-primary" id="saveEditBtn">Simpan</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
+    <!-- Toast -->
     <div class="toast" id="toast"></div>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-    </div>
-
     <script src="app.js"></script>
+    
+    <!-- KODULAR FIX SCRIPT -->
     <script>
-        // Register service worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(function(registration) {
-                        console.log('✅ ServiceWorker terdaftar dengan scope:', registration.scope);
-                    })
-                    .catch(function(err) {
-                        console.log('❌ ServiceWorker gagal:', err);
-                    });
-            });
-        }
+        // HIDE LOADING SCREEN
+        setTimeout(() => {
+            document.getElementById('loadingScreen').style.display = 'none';
+        }, 1000);
         
-        // Detect if running as PWA
-        window.addEventListener('load', function() {
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                console.log('📱 Running as PWA');
-                document.title = 'Stok Pintar';
-            }
+        // MANUAL EVENT BINDING FOR KODULAR
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Kodular Fix Applied');
+            
+            // Force enable all buttons
+            setTimeout(() => {
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.cursor = 'pointer';
+                    btn.disabled = false;
+                    
+                    // Add touch feedback
+                    btn.addEventListener('touchstart', function() {
+                        this.style.opacity = '0.7';
+                    });
+                    
+                    btn.addEventListener('touchend', function() {
+                        this.style.opacity = '1';
+                    });
+                });
+            }, 500);
         });
     </script>
 </body>
-</html>
+    </html>

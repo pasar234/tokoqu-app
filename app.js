@@ -1,11 +1,10 @@
 // ============================================
-// APLIKASI STOK PINTAR - MANAJEMEN STOK PRODUK
+// APLIKASI STOK PINTAR - KODULAR COMPATIBLE
 // ============================================
 
 // DATABASE
 let database = JSON.parse(localStorage.getItem('stok_app_db')) || [];
 let currentCategory = '';
-let deferredPrompt = null;
 let currentEditingProductId = null;
 
 // DOM ELEMENTS
@@ -17,9 +16,8 @@ const searchInput = document.getElementById('cari');
 const navBtns = document.querySelectorAll('.nav-btn');
 const categoryTitle = document.getElementById('categoryTitle');
 const productCount = document.getElementById('productCount');
-const clearSearchBtn = document.getElementById('clearSearch');
 
-// MODAL ELEMENTS
+// MODALS
 const confirmModal = document.getElementById('confirmModal');
 const confirmTitle = document.getElementById('confirmTitle');
 const confirmMessage = document.getElementById('confirmMessage');
@@ -33,60 +31,162 @@ const editHargaJual = document.getElementById('editHargaJual');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const saveEditBtn = document.getElementById('saveEditBtn');
 
-// UI ELEMENTS
+// UI
 const toast = document.getElementById('toast');
 const themeToggle = document.getElementById('themeToggle');
 const installBtn = document.getElementById('installBtn');
-const loadingOverlay = document.getElementById('loadingOverlay');
 const statsContainer = document.getElementById('statsContainer');
-const clearDataBtn = document.getElementById('clearDataBtn');
+
+// ============================================
+// KODULAR FIX - MANUAL EVENT BINDING
+// ============================================
+
+function initializeKodularFix() {
+    console.log('🔧 Initializing Kodular Fix...');
+    
+    // ===== NAVIGATION BUTTONS =====
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const page = this.getAttribute('data-page');
+            console.log('Navigating to:', page);
+            
+            // Update active state
+            navBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show page
+            if (page === 'home') {
+                pageHome.classList.add('active');
+                pageList.classList.remove('active');
+                document.getElementById('nama').focus();
+                renderStats();
+            } else {
+                currentCategory = page;
+                pageHome.classList.remove('active');
+                pageList.classList.add('active');
+                
+                const categoryNames = {
+                    'narita': 'NARITA',
+                    'vr': 'VR', 
+                    'kudus': 'KUDUS',
+                    'lain': 'LAIN'
+                };
+                categoryTitle.innerHTML = `<i class="fas fa-box"></i> Produk ${categoryNames[page]}`;
+                
+                renderData();
+            }
+        });
+    });
+    
+    // ===== SIMPAN PRODUK =====
+    const simpanBtn = document.getElementById('simpanProduk');
+    if (simpanBtn) {
+        simpanBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Simpan Produk clicked');
+            simpanData();
+        });
+        
+        // Enter key support
+        document.getElementById('nama').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('jual').focus();
+        });
+        
+        document.getElementById('jual').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') simpanData();
+        });
+    }
+    
+    // ===== BACKUP DATA =====
+    const backupBtn = document.getElementById('backupBtn');
+    if (backupBtn) {
+        backupBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Backup clicked');
+            exportData();
+        });
+    }
+    
+    // ===== HAPUS SEMUA DATA =====
+    const clearBtn = document.getElementById('clearDataBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Clear Data clicked');
+            
+            if (confirm('HAPUS SEMUA DATA? Semua produk akan dihapus permanen!')) {
+                database = [];
+                localStorage.removeItem('stok_app_db');
+                showToast('🗑️ Semua data berhasil dihapus', 'success');
+                
+                if (pageList.classList.contains('active')) {
+                    renderData();
+                }
+                
+                renderStats();
+            }
+        });
+    }
+    
+    // ===== MODAL BUTTONS =====
+    confirmCancel.addEventListener('click', () => confirmModal.classList.remove('show'));
+    confirmOk.addEventListener('click', handleConfirmDelete);
+    cancelEditBtn.addEventListener('click', () => {
+        editPriceModal.classList.remove('show');
+        currentEditingProductId = null;
+    });
+    saveEditBtn.addEventListener('click', saveEditedPrice);
+    
+    // ===== THEME TOGGLE =====
+    themeToggle.addEventListener('click', toggleTheme);
+    
+    // ===== SEARCH =====
+    searchInput.addEventListener('input', renderData);
+    
+    // ===== FILE IMPORT =====
+    document.getElementById('fileInput').addEventListener('change', importData);
+    
+    console.log('✅ Kodular Fix Initialized');
+}
 
 // ============================================
 // INITIALIZATION
 // ============================================
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Aplikasi Stok Pintar dimuat');
-    console.log(`📊 Total produk: ${database.length}`);
     
-    initializeTheme();
-    initializeNavigation();
-    initializeEventListeners();
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+    
+    // Apply Kodular fixes
+    initializeKodularFix();
+    
+    // Initial render
     renderStats();
     
-    // PWA Install Prompt
-    window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('📱 PWA install prompt tersedia');
-        e.preventDefault();
-        deferredPrompt = e;
-        installBtn.style.display = 'flex';
-        setTimeout(() => {
-            showToast('📲 Aplikasi bisa diinstall ke home screen', 'info');
-        }, 2000);
-    });
-    
-    window.addEventListener('appinstalled', () => {
-        console.log('✅ Aplikasi terinstall');
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-        showToast('🎉 Aplikasi berhasil diinstal!', 'success');
-    });
-    
-    // Auto-focus search when on list page
-    if (window.location.hash === '#list') {
-        showPage('narita');
+    // PWA support (optional)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js').catch(console.error);
     }
+    
+    // Show ready message
+    setTimeout(() => {
+        showToast('✅ Aplikasi siap digunakan!', 'success');
+    }, 1500);
 });
 
 // ============================================
 // THEME FUNCTIONS
 // ============================================
-
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-}
 
 function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -102,159 +202,6 @@ function toggleTheme() {
 function updateThemeIcon(theme) {
     const icon = themeToggle.querySelector('i');
     icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-    themeToggle.title = `Tema ${theme === 'dark' ? 'gelap' : 'terang'}`;
-}
-
-// ============================================
-// NAVIGATION FUNCTIONS
-// ============================================
-
-function initializeNavigation() {
-    navBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const page = btn.dataset.page;
-            showPage(page);
-        });
-    });
-}
-
-function showPage(page) {
-    // Update active nav button
-    navBtns.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.page === page) {
-            btn.classList.add('active');
-        }
-    });
-    
-    // Show selected page
-    if (page === 'home') {
-        pageHome.classList.add('active');
-        pageList.classList.remove('active');
-        document.getElementById('nama').focus();
-        renderStats();
-    } else {
-        currentCategory = page;
-        pageHome.classList.remove('active');
-        pageList.classList.add('active');
-        
-        // Update category title
-        const categoryNames = {
-            'narita': 'NARITA',
-            'vr': 'VR', 
-            'kudus': 'KUDUS',
-            'lain': 'LAIN LAIN'
-        };
-        categoryTitle.innerHTML = `<i class="fas fa-box"></i> Produk ${categoryNames[page]}`;
-        
-        renderData();
-    }
-    
-    // Scroll to top
-    window.scrollTo(0, 0);
-}
-
-// ============================================
-// EVENT LISTENERS
-// ============================================
-
-function initializeEventListeners() {
-    // Save Product
-    document.getElementById('simpanProduk').addEventListener('click', simpanData);
-    
-    // Enter key to save
-    document.getElementById('nama').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('jual').focus();
-        }
-    });
-    
-    document.getElementById('jual').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            simpanData();
-        }
-    });
-    
-    // Backup/Restore
-    document.getElementById('backupBtn').addEventListener('click', exportData);
-    document.getElementById('fileInput').addEventListener('change', importData);
-    
-    // Clear all data
-    clearDataBtn.addEventListener('click', () => {
-        if (confirm('HAPUS SEMUA DATA? Semua produk akan dihapus permanen!')) {
-            database = [];
-            saveToLocalStorage();
-            showToast('🗑️ Semua data berhasil dihapus', 'success');
-            renderStats();
-            if (pageList.classList.contains('active')) {
-                renderData();
-            }
-        }
-    });
-    
-    // Search
-    searchInput.addEventListener('input', () => {
-        renderData();
-        clearSearchBtn.style.display = searchInput.value ? 'flex' : 'none';
-    });
-    
-    clearSearchBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        renderData();
-        clearSearchBtn.style.display = 'none';
-        searchInput.focus();
-    });
-    
-    // Theme Toggle
-    themeToggle.addEventListener('click', toggleTheme);
-    
-    // Install App
-    installBtn.addEventListener('click', installApp);
-    
-    // Modal - Delete
-    confirmCancel.addEventListener('click', () => {
-        confirmModal.classList.remove('show');
-    });
-    
-    confirmOk.addEventListener('click', handleConfirmDelete);
-    
-    // Modal - Edit Price
-    cancelEditBtn.addEventListener('click', () => {
-        editPriceModal.classList.remove('show');
-        currentEditingProductId = null;
-    });
-    
-    saveEditBtn.addEventListener('click', saveEditedPrice);
-    
-    // Enter key in edit modal
-    editHargaJual.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            saveEditedPrice();
-        }
-    });
-    
-    // Close modals with ESC
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            confirmModal.classList.remove('show');
-            editPriceModal.classList.remove('show');
-            currentEditingProductId = null;
-        }
-    });
-    
-    // Click outside modal to close
-    window.addEventListener('click', (e) => {
-        if (e.target === confirmModal) {
-            confirmModal.classList.remove('show');
-        }
-        if (e.target === editPriceModal) {
-            editPriceModal.classList.remove('show');
-            currentEditingProductId = null;
-        }
-    });
 }
 
 // ============================================
@@ -262,30 +209,26 @@ function initializeEventListeners() {
 // ============================================
 
 function simpanData() {
-    showLoading(true);
-    
     const nama = document.getElementById('nama').value.trim();
     const kode = document.getElementById('kode').value.trim();
     const beli = document.getElementById('beli').value;
     const jual = document.getElementById('jual').value;
     const kategori = document.getElementById('kategori').value;
     
-    // Validasi
+    // Validation
     if (!nama) {
         showToast('❌ Nama produk harus diisi!', 'error');
         document.getElementById('nama').focus();
-        showLoading(false);
         return;
     }
     
     if (!jual || parseInt(jual) <= 0) {
         showToast('❌ Harga jual harus diisi!', 'error');
         document.getElementById('jual').focus();
-        showLoading(false);
         return;
     }
     
-    // Buat produk baru
+    // Create new product
     const produkBaru = {
         id: Date.now(),
         nama: nama,
@@ -294,8 +237,7 @@ function simpanData() {
         jual: parseInt(jual),
         kategori: kategori,
         stok: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: new Date().toISOString()
     };
     
     database.push(produkBaru);
@@ -308,18 +250,16 @@ function simpanData() {
     document.getElementById('jual').value = '';
     document.getElementById('nama').focus();
     
-    showLoading(false);
-    showToast(`✅ "${nama}" ditambahkan ke ${kategori.toUpperCase()}`, 'success');
+    showToast(`✅ "${nama}" ditambahkan ke ${kategori}`, 'success');
     renderStats();
     
-    // Auto switch to the category if on list page
+    // Auto switch to category
     if (pageList.classList.contains('active') && currentCategory === kategori) {
         renderData();
     }
 }
 
 function generateProductCode(nama) {
-    // Generate kode dari nama produk
     const words = nama.toUpperCase().split(' ');
     let code = '';
     
@@ -327,13 +267,10 @@ function generateProductCode(nama) {
         code = words[0].substring(0, 3);
     } else {
         words.forEach(word => {
-            if (word.length > 0) {
-                code += word[0];
-            }
+            if (word.length > 0) code += word[0];
         });
     }
     
-    // Tambahkan angka random
     const randomNum = Math.floor(Math.random() * 900) + 100;
     return `${code}-${randomNum}`;
 }
@@ -352,7 +289,7 @@ function renderData() {
          item.kode.toLowerCase().includes(search))
     );
     
-    // Update product count
+    // Update count
     const count = filteredData.length;
     productCount.textContent = `${count} produk`;
     productCount.className = `badge ${count === 0 ? 'badge-warning' : 'badge-success'}`;
@@ -366,15 +303,13 @@ function renderData() {
             emptyState.innerHTML = `
                 <i class="fas fa-search"></i>
                 <h3>Produk tidak ditemukan</h3>
-                <p>Tidak ada produk yang sesuai dengan pencarian: "${search}"</p>
+                <p>Tidak ada produk yang sesuai dengan pencarian</p>
             `;
         }
         return;
     }
     
     emptyState.style.display = 'none';
-    
-    // Sort by name
     filteredData.sort((a, b) => a.nama.localeCompare(b.nama));
     
     // Render products with HORIZONTAL LAYOUT
@@ -390,8 +325,7 @@ function renderData() {
                 <div class="product-prices">
                     <div class="price-row">
                         <span class="price-label">Beli:</span>
-                        <div class="harga-value beli" onclick="openEditPriceModal(${item.id})" 
-                             title="Klik untuk edit harga beli">
+                        <div class="harga-value beli" onclick="openEditPriceModal(${item.id})">
                             ${formatRupiah(item.beli)}
                             <i class="fas fa-edit edit-icon"></i>
                         </div>
@@ -399,10 +333,9 @@ function renderData() {
                     
                     <div class="price-row">
                         <span class="price-label">Jual:</span>
-                        <div class="harga-value jual" onclick="openEditPriceModal(${item.id})" 
-                             title="Klik untuk edit harga jual" style="color: #dc2626;">
+                        <div class="harga-value jual" onclick="openEditPriceModal(${item.id})">
                             ${formatRupiah(item.jual)}
-                            <i class="fas fa-edit edit-icon" style="color: #dc2626;"></i>
+                            <i class="fas fa-edit edit-icon"></i>
                         </div>
                     </div>
                 </div>
@@ -410,27 +343,22 @@ function renderData() {
             
             <!-- RIGHT: Stock Control & Actions -->
             <div class="product-actions">
-                <!-- Stock Control -->
                 <div class="stock-control">
                     <div class="stock-header">
                         <span class="stock-label">STOK</span>
                         <span class="stock-value" id="stock-${item.id}">${item.stok}</span>
                     </div>
                     <div class="stock-buttons">
-                        <button class="stock-btn minus" onclick="changeStock(${item.id}, -1)" 
-                                title="Kurangi stok" ${item.stok <= 0 ? 'disabled' : ''}>
+                        <button class="stock-btn minus" onclick="changeStock(${item.id}, -1)">
                             <i class="fas fa-minus"></i>
                         </button>
-                        <button class="stock-btn plus" onclick="changeStock(${item.id}, 1)" 
-                                title="Tambah stok">
+                        <button class="stock-btn plus" onclick="changeStock(${item.id}, 1)">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
                 </div>
                 
-                <!-- Delete Button -->
-                <button class="delete-btn" onclick="confirmDeleteProduct(${item.id})" 
-                        title="Hapus produk ini">
+                <button class="delete-btn" onclick="confirmDeleteProduct(${item.id})">
                     <i class="fas fa-trash"></i> HAPUS
                 </button>
             </div>
@@ -441,16 +369,8 @@ function renderData() {
 function renderStats() {
     const totalProduk = database.length;
     const totalStok = database.reduce((sum, item) => sum + item.stok, 0);
-    
-    // Hitung per kategori
-    const kategoriStats = {};
-    database.forEach(item => {
-        if (!kategoriStats[item.kategori]) {
-            kategoriStats[item.kategori] = { count: 0, stok: 0 };
-        }
-        kategoriStats[item.kategori].count++;
-        kategoriStats[item.kategori].stok += item.stok;
-    });
+    const kategoriCount = new Set(database.map(item => item.kategori)).size;
+    const stokHabis = database.filter(p => p.stok === 0).length;
     
     statsContainer.innerHTML = `
         <div class="stat-card">
@@ -478,17 +398,17 @@ function renderStats() {
                 <i class="fas fa-tags"></i>
             </div>
             <div class="stat-info">
-                <div class="stat-value">${Object.keys(kategoriStats).length}</div>
+                <div class="stat-value">${kategoriCount}</div>
                 <div class="stat-label">Kategori</div>
             </div>
         </div>
         
         <div class="stat-card">
             <div class="stat-icon" style="background: #f59e0b;">
-                <i class="fas fa-chart-line"></i>
+                <i class="fas fa-exclamation"></i>
             </div>
             <div class="stat-info">
-                <div class="stat-value">${database.filter(p => p.stok === 0).length}</div>
+                <div class="stat-value">${stokHabis}</div>
                 <div class="stat-label">Stok Habis</div>
             </div>
         </div>
@@ -512,30 +432,22 @@ function changeStock(id, change) {
     }
     
     database[index].stok = newStock;
-    database[index].updatedAt = new Date().toISOString();
     saveToLocalStorage();
     
-    // Animate stock change
+    // Update UI
     const stockElement = document.getElementById(`stock-${id}`);
     if (stockElement) {
         stockElement.textContent = newStock;
         stockElement.classList.add('changed');
         setTimeout(() => stockElement.classList.remove('changed'), 500);
-        
-        // Update button state
-        const minusBtn = stockElement.closest('.product-card').querySelector('.stock-btn.minus');
-        if (minusBtn) {
-            minusBtn.disabled = newStock <= 0;
-        }
     }
     
     // Show notification
     const produk = database[index];
     const icon = change > 0 ? '📈' : '📉';
     const action = change > 0 ? 'ditambahkan' : 'dikurangi';
-    showToast(`${icon} Stok <strong>${produk.nama}</strong> ${action}: ${oldStock} → ${newStock}`, 'success');
+    showToast(`${icon} Stok ${produk.nama} ${action}: ${oldStock} → ${newStock}`, 'success');
     
-    // Update stats
     renderStats();
 }
 
@@ -569,28 +481,109 @@ function saveEditedPrice() {
     }
     
     const index = database.findIndex(x => x.id === currentEditingProductId);
-    if (index === -1) {
-        showToast('❌ Produk tidak ditemukan', 'error');
-        return;
-    }
-    
-    const oldBeli = database[index].beli;
-    const oldJual = database[index].jual;
+    if (index === -1) return;
     
     database[index].beli = newBeli;
     database[index].jual = newJual;
-    database[index].updatedAt = new Date().toISOString();
     saveToLocalStorage();
     
     editPriceModal.classList.remove('show');
     currentEditingProductId = null;
     
-    // Update UI
     renderData();
+    showToast('✅ Harga berhasil diupdate', 'success');
+}
+
+// ============================================
+// DELETE PRODUCT FUNCTIONS
+// ============================================
+
+function confirmDeleteProduct(id) {
+    const produk = database.find(x => x.id === id);
+    if (!produk) return;
     
-    // Show success message
-    let message = `✅ Harga <strong>${database[index].nama}</strong> diupdate`;
-    if (oldBeli !== newBeli || oldJual !== newJual) {
-        message += ':';
-        if (oldBeli !== newBeli) {
- 
+    currentEditingProductId = id;
+    confirmTitle.innerHTML = `<i class="fas fa-trash"></i> Hapus Produk`;
+    confirmMessage.innerHTML = `Yakin hapus produk <strong>"${produk.nama}"</strong>?<br>
+                               <small>Kode: ${produk.kode}</small>`;
+    confirmModal.classList.add('show');
+}
+
+function handleConfirmDelete() {
+    if (!currentEditingProductId) return;
+    
+    const produk = database.find(x => x.id === currentEditingProductId);
+    if (!produk) return;
+    
+    database = database.filter(x => x.id !== currentEditingProductId);
+    saveToLocalStorage();
+    
+    confirmModal.classList.remove('show');
+    showToast(`🗑️ Produk "${produk.nama}" dihapus`, 'success');
+    
+    renderData();
+    renderStats();
+    currentEditingProductId = null;
+}
+
+// ============================================
+// DATA IMPORT/EXPORT
+// ============================================
+
+function exportData() {
+    if (database.length === 0) {
+        showToast('❌ Tidak ada data untuk dibackup!', 'warning');
+        return;
+    }
+    
+    const dataStr = JSON.stringify(database, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backup_stok_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showToast('✅ Backup berhasil didownload!', 'success');
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            if (!Array.isArray(importedData)) {
+                throw new Error('Format file tidak valid');
+            }
+            
+            if (confirm(`Akan mengimpor ${importedData.length} produk. Data lama akan ditimpa. Lanjutkan?`)) {
+                database = importedData;
+                saveToLocalStorage();
+                showToast(`✅ ${importedData.length} produk diimpor!`, 'success');
+                
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        } catch (err) {
+            showToast('❌ Gagal mengimpor data', 'error');
+        }
+    };
+    
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+function saveToLocalStorage() {
+    localStorag

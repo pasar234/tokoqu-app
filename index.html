@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stok Pintar Pro - Offline</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --danger: #ef4444; /* Warna Merah Harga */
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+
+        /* --- Header & Navigation --- */
+        .header { background: var(--primary); color: white; padding: 20px; position: sticky; top: 0; z-index: 100; text-align: center; }
+        .tabs { display: flex; overflow-x: auto; background: var(--card); border-bottom: 1px solid var(--border); sticky; top: 80px; }
+        .tab { padding: 15px 25px; cursor: pointer; font-weight: 600; color: var(--text-light); white-space: nowrap; border-bottom: 3px solid transparent; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+
+        /* --- SCREEN 1: FORM TAMBAH (Gaya Foto 1) --- */
+        .card-form { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group select { 
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none;
+        }
+        .btn-submit { 
+            width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; 
+            font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s;
+        }
+        .btn-submit:active { transform: scale(0.98); }
+
+        /* --- SCREEN 2: DAFTAR PRODUK (Gaya Foto 2) --- */
+        .search-box { background: var(--card); padding: 10px 15px; border-radius: 10px; display: flex; align-items: center; border: 1px solid var(--border); margin-bottom: 15px; }
+        .search-box input { border: none; outline: none; width: 100%; margin-left: 10px; font-size: 1rem; }
+
+        .product-item { 
+            background: var(--card); display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px; border-bottom: 1px solid var(--border);
+        }
+        .product-info { flex: 1; }
+        .product-name { font-weight: 700; font-size: 1.1rem; margin: 0; }
+        .product-code { color: var(--text-light); font-size: 0.85rem; margin-top: 2px; }
+        
+        /* Fitur Harga Merah Klik-Edit */
+        .price-clickable { 
+            color: var(--danger); font-weight: 800; font-size: 1.2rem; cursor: pointer; 
+            display: inline-block; margin-top: 5px; padding: 2px 4px; border-radius: 4px;
+        }
+        .price-clickable:hover { background: #fee2e2; }
+
+        /* Kontrol Stok Horizontal */
+        .stock-control { 
+            display: flex; align-items: center; gap: 12px; background: #f1f5f9; 
+            padding: 8px 12px; border-radius: 20px; margin-left: 10px;
+        }
+        .btn-qty { border: none; background: none; font-size: 1.4rem; color: var(--primary); cursor: pointer; font-weight: bold; }
+        .stock-num { font-weight: 800; min-width: 25px; text-align: center; font-size: 1.1rem; }
+
+        /* --- Modal Edit --- */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal.show { display: flex; }
+        .modal-content { background: var(--card); padding: 20px; border-radius: 15px; width: 100%; max-width: 350px; }
+        
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid var(--border); box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-item { flex: 1; text-align: center; padding: 12px; color: var(--text-light); cursor: pointer; font-size: 0.8rem; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .nav-item i { display: block; font-size: 1.2rem; margin-bottom: 3px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin:0">Stok Pintar</h2>
+        <small>Manajemen Stok Produk Offline</small>
+    </div>
+
+    <div id="tabs-container" class="tabs hidden"></div>
+
+    <div id="screen-add" class="container">
+        <div class="card-form">
+            <h3 style="margin-top:0">Tambah Produk Baru</h3>
+            <div class="form-group">
+                <label>Pilih Kategori</label>
+                <select id="f-kategori">
+                    <option value="NARITA">NARITA</option>
+                    <option value="VR">VR</option>
+                    <option value="KUDUS">KUDUS</option>
+                    <option value="LAIN">LAIN</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nama Produk</label>
+                <input type="text" id="f-nama" placeholder="Contoh: Gear Depan">
+            </div>
+            <div class="form-group">
+                <label>Kode Produk (Opsional)</label>
+                <input type="text" id="f-kode" placeholder="Contoh: GR-001">
+            </div>
+            <div class="form-group">
+                <label>Harga Jual (Rp)</label>
+                <input type="number" id="f-harga" placeholder="0">
+            </div>
+            <button class="btn-submit" onclick="simpanProduk()">SIMPAN PRODUK</button>
+        </div>
+    </div>
+
+    <div id="screen-list" class="hidden">
+        <div class="container">
+            <div class="search-box">
+                <i class="fas fa-search" style="color:#94a3b8"></i>
+                <input type="text" id="q-search" placeholder="Cari nama atau kode..." oninput="renderProduk()">
+            </div>
+            <div id="list-render"></div>
+        </div>
+    </div>
+
+    <div id="modal-price" class="modal">
+        <div class="modal-content">
+            <h3 id="edit-nama-display" style="margin-top:0">Edit Harga</h3>
+            <div class="form-group">
+                <label>Harga Baru (Rp)</label>
+                <input type="number" id="m-harga-input">
+            </div>
+            <div style="display:flex; gap:10px; justify-content: flex-end;">
+                <button onclick="tutupModal()" style="padding:10px; border:none; background:none; cursor:pointer">Batal</button>
+                <button class="btn-submit" onclick="updateHargaAction()" style="width:auto; padding:10px 20px;">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="navKe('add')" id="nav-add">
+            <i class="fas fa-plus-circle"></i>Tambah
+        </div>
+        <div class="nav-item" onclick="navKe('list')" id="nav-list">
+            <i class="fas fa-boxes"></i>Stok Produk
+        </div>
+    </div>
+
+    <script>
+        // Data & Logic
+        let db = JSON.parse(localStorage.getItem('stok_db')) || [];
+        let curCat = "NARITA";
+        let editId = null;
+        const categories = ["NARITA", "VR", "KUDUS", "LAIN"];
+
+        // Navigasi Antar Halaman
+        function navKe(page) {
+            const sAdd = document.getElementById('screen-add');
+            const sList = document.getElementById('screen-list');
+            const tabs = document.getElementById('tabs-container');
+            
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            if(page === 'add') {
+                sAdd.classList.remove('hidden');
+                sList.classList.add('hidden');
+                tabs.classList.add('hidden');
+                document.getElementById('nav-add').classList.add('active');
+            } else {
+                sAdd.classList.add('hidden');
+                sList.classList.remove('hidden');
+                tabs.classList.remove('hidden');
+                document.getElementById('nav-list').classList.add('active');
+                renderTabs();
+                renderProduk();
+            }
+        }
+
+        // Simpan Produk Baru
+        function simpanProduk() {
+            const nama = document.getElementById('f-nama').value;
+            const kode = document.getElementById('f-kode').value || "-";
+            const harga = document.getElementById('f-harga').value;
+            const kat = document.getElementById('f-kategori').value;
+
+            if(!nama || !harga) return alert("Mohon lengkapi Nama dan Harga!");
+
+            const baru = {
+                id: Date.now(),
+                nama, kode, jual: parseInt(harga), stok: 0, kategori: kat
+            };
+
+            db.push(baru);
+            saveData();
+            
+            // Reset Form & Pindah ke List
+            document.getElementById('f-nama').value = '';
+            document.getElementById('f-harga').value = '';
+            curCat = kat; // Otomatis buka kategori yang baru ditambah
+            navKe('list');
+        }
+
+        // Render Tabs Kategori
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = categories.map(c => `
+                <div class="tab ${c === curCat ? 'active' : ''}" onclick="setCat('${c}')">${c}</div>
+            `).join('');
+        }
+
+        function setCat(c) {
+            curCat = c;
+            renderTabs();
+            renderProduk();
+        }
+
+        // Render Daftar Produk (Foto 2: Sejajar)
+        function renderProduk() {
+            const container = document.getElementById('list-render');
+            const q = document.getElementById('q-search').value.toLowerCase();
+            
+            const filtered = db.filter(i => 
+                i.kategori === curCat && 
+                (i.nama.toLowerCase().includes(q) || i.kode.toLowerCase().includes(q))
+            );
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#94a3b8; margin-top:40px;">Belum ada produk di kategori ${curCat}</p>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => `
+                <div class="product-item">
+                    <div class="product-info">
+                        <p class="product-name">${item.nama}</p>
+                        <span class="product-code">ID: ${item.kode}</span><br>
+                        <div class="price-clickable" onclick="bukaEditHarga(${item.id}, ${item.jual}, '${item.nama}')">
+                            Rp ${item.jual.toLocaleString('id-ID')}
+                        </div>
+                    </div>
+                    <div class="stock-control">
+                        <button class="btn-qty" onclick="adjustStok(${item.id}, -1)">-</button>
+                        <span class="stock-num">${item.stok}</span>
+                        <button class="btn-qty" onclick="adjustStok(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Fitur Edit Harga
+        function bukaEditHarga(id, harga, nama) {
+            editId = id;
+            document.getElementById('edit-nama-display').innerText = nama;
+            document.getElementById('m-harga-input').value = harga;
+            document.getElementById('modal-price').classList.add('show');
+        }
+
+        function tutupModal() {
+            document.getElementById('modal-price').classList.remove('show');
+        }
+
+        function updateHargaAction() {
+            const hBaru = document.getElementById('m-harga-input').value;
+            const idx = db.findIndex(p => p.id === editId);
+            if(idx !== -1) {
+                db[idx].jual = parseInt(hBaru);
+                saveData();
+                renderProduk();
+                tutupModal();
+            }
+        }
+
+        // Update Stok
+        function adjustStok(id, val) {
+            const idx = db.findIndex(p => p.id === id);
+            if(idx !== -1) {
+                db[idx].stok = Math.max(0, db[idx].stok + val);
+                saveData();
+                renderProduk();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('stok_db', JSON.stringify(db));
+        }
+
+        // Service Worker Registration (Offline)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js').catch(err => console.log(err));
+            });
+        }
+    </script>
+</body>
+  </html>

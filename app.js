@@ -1,174 +1,139 @@
-// Database
-let database = JSON.parse(localStorage.getItem('stok_app_db')) || [];
-let currentCategory = '';
-let deferredPrompt = null;
+// VARIABEL GLOBAL UNTUK EDIT HARGA
+let currentEditingProduct = null;
 
-// DOM Elements
-const pageHome = document.getElementById('page-home');
-const pageList = document.getElementById('page-list');
-const listContainer = document.getElementById('list-container');
-const emptyState = document.getElementById('emptyState');
-const searchInput = document.getElementById('cari');
-const navBtns = document.querySelectorAll('.nav-btn');
-const confirmModal = document.getElementById('confirmModal');
-const confirmTitle = document.getElementById('confirmTitle');
-const confirmMessage = document.getElementById('confirmMessage');
-const confirmCancel = document.getElementById('confirmCancel');
-const confirmOk = document.getElementById('confirmOk');
-const toast = document.getElementById('toast');
-const themeToggle = document.getElementById('themeToggle');
-const installBtn = document.getElementById('installBtn');
-
-// Debug info
-console.log('Aplikasi Stok Pintar dimuat');
-console.log('Jumlah produk:', database.length);
-console.log('Path:', window.location.href);
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM siap, inisialisasi...');
-    initializeTheme();
-    initializeNavigation();
-    initializeEventListeners();
-    renderData();
+// FUNGSI TAMPILKAN MODAL EDIT HARGA
+function showEditPriceModal(productId) {
+    const produk = database.find(x => x.id === productId);
+    if (!produk) return;
     
-    // Check for PWA install prompt
-    window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('PWA install prompt tersedia');
-        e.preventDefault();
-        deferredPrompt = e;
-        installBtn.style.display = 'flex';
-        showToast('Aplikasi bisa diinstall!', 'success');
-    });
+    currentEditingProduct = productId;
     
-    // Listen for app installed
-    window.addEventListener('appinstalled', () => {
-        console.log('Aplikasi terinstall');
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-        showToast('Aplikasi berhasil diinstal!', 'success');
-    });
+    // Buat modal HTML
+    const modalHTML = `
+        <div class="modal-edit-harga show" id="editPriceModal">
+            <div class="modal-content-edit">
+                <h3>Edit Harga Produk</h3>
+                <p><strong>${escapeHtml(produk.nama)}</strong></p>
+                
+                <div class="edit-form-group">
+                    <label for="editHargaBeli">Harga Beli (Rp)</label>
+                    <input type="number" 
+                           id="editHargaBeli" 
+                           class="edit-form-input" 
+                           value="${produk.beli}" 
+                           min="0" 
+                           placeholder="Masukkan harga beli"
+                           onfocus="this.select()">
+                </div>
+                
+                <div class="edit-form-group">
+                    <label for="editHargaJual">Harga Jual (Rp) *</label>
+                    <input type="number" 
+                           id="editHargaJual" 
+                           class="edit-form-input" 
+                           value="${produk.jual}" 
+                           min="0" 
+                           placeholder="Masukkan harga jual"
+                           required
+                           onfocus="this.select()">
+                </div>
+                
+                <div class="modal-actions-edit">
+                    <button class="btn-edit-cancel" id="cancelEditBtn">Batal</button>
+                    <button class="btn-edit-save" id="saveEditBtn">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+    `;
     
-    // Cek jika running sebagai PWA
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-        console.log('Running sebagai PWA');
-    }
-});
-
-// Initialize Theme
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-}
-
-// Initialize Navigation
-function initializeNavigation() {
-    navBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const page = btn.dataset.page;
-            showPage(page);
-        });
-    });
-}
-
-// Initialize Event Listeners
-function initializeEventListeners() {
-    // Save Product
-    document.getElementById('simpanProduk').addEventListener('click', simpanData);
+    // Tambahkan modal ke body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
     
-    // Backup/Restore
-    document.getElementById('backupBtn').addEventListener('click', exportData);
-    document.getElementById('fileInput').addEventListener('change', importData);
+    // Auto-focus pada harga jual
+    setTimeout(() => {
+        const jualInput = document.getElementById('editHargaJual');
+        if (jualInput) jualInput.focus();
+    }, 300);
     
-    // Search
-    searchInput.addEventListener('input', renderData);
+    // Event listeners untuk modal
+    document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
+    document.getElementById('saveEditBtn').addEventListener('click', saveEditedPrice);
     
-    // Theme Toggle
-    themeToggle.addEventListener('click', toggleTheme);
+    // ESC untuk close modal
+    document.addEventListener('keydown', handleEditModalKeydown);
     
-    // Install App
-    installBtn.addEventListener('click', installApp);
-    
-    // Modal
-    confirmCancel.addEventListener('click', () => confirmModal.classList.remove('show'));
-    confirmOk.addEventListener('click', handleConfirm);
-    
-    // Enter key to save product
-    document.getElementById('nama').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') simpanData();
-    });
-    document.getElementById('jual').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') simpanData();
-    });
-}
-
-// Show Page
-function showPage(page) {
-    // Update active nav button
-    navBtns.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.page === page) {
-            btn.classList.add('active');
+    // Klik di luar modal untuk close
+    document.getElementById('editPriceModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEditModal();
         }
     });
-    
-    // Show page
-    if (page === 'home') {
-        pageHome.classList.add('active');
-        pageList.classList.remove('active');
-        // Focus on nama input
-        document.getElementById('nama').focus();
-    } else {
-        currentCategory = page;
-        pageHome.classList.remove('active');
-        pageList.classList.add('active');
-        document.title = `Stok ${page.toUpperCase()} - Stok Pintar`;
-        renderData();
-    }
 }
 
-// Save Product
-function simpanData() {
-    const nama = document.getElementById('nama').value.trim();
-    const kode = document.getElementById('kode').value.trim();
-    const beli = document.getElementById('beli').value;
-    const jual = document.getElementById('jual').value;
-    const kategori = document.getElementById('kategori').value;
+// FUNGSI SIMPAN HARGA YANG DIEDIT
+function saveEditedPrice() {
+    if (!currentEditingProduct) return;
     
-    if (!nama || !jual) {
-        showToast('Nama dan Harga Jual wajib diisi!', 'error');
-        document.getElementById('nama').focus();
+    const newBeli = parseInt(document.getElementById('editHargaBeli').value) || 0;
+    const newJual = parseInt(document.getElementById('editHargaJual').value);
+    
+    // Validasi
+    if (!newJual || newJual <= 0) {
+        showToast('❌ Harga jual harus diisi!', 'error');
+        document.getElementById('editHargaJual').focus();
         return;
     }
     
-    const produkBaru = {
-        id: Date.now(),
-        nama: nama,
-        kode: kode || `PROD-${Date.now().toString().slice(-6)}`,
-        beli: parseInt(beli) || 0,
-        jual: parseInt(jual),
-        kategori: kategori,
-        stok: 0,
-        createdAt: new Date().toISOString()
-    };
+    const index = database.findIndex(x => x.id === currentEditingProduct);
+    if (index !== -1) {
+        // Simpan harga lama untuk notifikasi
+        const hargaBeliLama = database[index].beli;
+        const hargaJualLama = database[index].jual;
+        
+        // Update harga baru
+        database[index].beli = newBeli;
+        database[index].jual = newJual;
+        
+        saveToLocalStorage();
+        renderData();
+        
+        // Tampilkan notifikasi perubahan
+        let notif = `✅ Harga ${database[index].nama} diupdate:`;
+        if (hargaBeliLama !== newBeli) {
+            notif += `\nBeli: ${formatRupiah(hargaBeliLama)} → ${formatRupiah(newBeli)}`;
+        }
+        if (hargaJualLama !== newJual) {
+            notif += `\nJual: ${formatRupiah(hargaJualLama)} → ${formatRupiah(newJual)}`;
+        }
+        
+        showToast(notif, 'success');
+    }
     
-    database.push(produkBaru);
-    saveToLocalStorage();
-    
-    showToast(`✅ "${nama}" ditambahkan ke ${kategori.toUpperCase()}`, 'success');
-    
-    // Clear form
-    document.getElementById('nama').value = '';
-    document.getElementById('kode').value = '';
-    document.getElementById('beli').value = '';
-    document.getElementById('jual').value = '';
-    
-    // Focus on nama input
-    document.getElementById('nama').focus();
+    closeEditModal();
 }
 
-// Render Data
+// FUNGSI TUTUP MODAL EDIT
+function closeEditModal() {
+    const modal = document.getElementById('editPriceModal');
+    if (modal) {
+        modal.remove();
+    }
+    currentEditingProduct = null;
+    document.removeEventListener('keydown', handleEditModalKeydown);
+}
+
+// FUNGSI HANDLE KEYDOWN DI MODAL EDIT
+function handleEditModalKeydown(e) {
+    if (e.key === 'Escape') {
+        closeEditModal();
+    }
+    if (e.key === 'Enter' && e.ctrlKey) {
+        e.preventDefault();
+        saveEditedPrice();
+    }
+}
+
+// PERBAIKAN FUNGSI renderData() - TAMPILKAN HARGA YANG BISA DIKLIK
 function renderData() {
     if (!currentCategory) return;
     
@@ -186,230 +151,86 @@ function renderData() {
     }
     
     emptyState.style.display = 'none';
-    
-    // Sort by name
     filteredData.sort((a, b) => a.nama.localeCompare(b.nama));
     
     listContainer.innerHTML = filteredData.map(item => `
         <div class="product-card" data-id="${item.id}">
-            <div class="product-header">
-                <div class="product-info">
-                    <h3 class="product-title">${escapeHtml(item.nama)}</h3>
+            <!-- BAGIAN KIRI: INFO PRODUK -->
+            <div class="product-info">
+                <h3 class="product-title">${escapeHtml(item.nama)}</h3>
+                
+                <div class="product-details">
                     <div class="product-code">Kode: ${escapeHtml(item.kode)}</div>
-                    <div class="product-harga">
-                        <span class="harga-label">Beli:</span> ${formatRupiah(item.beli)}<br>
-                        <span class="harga-label">Jual:</span> <strong>${formatRupiah(item.jual)}</strong>
-                    </div>
-                    <button class="delete-btn" onclick="showDeleteConfirm(${item.id})">
-                        <i class="fas fa-trash"></i> Hapus
-                    </button>
                 </div>
+                
+                <div class="product-harga-container">
+                    <!-- HARGA BELI -->
+                    <div class="harga-item">
+                        <span class="harga-label">Beli:</span>
+                        <div class="harga-value" onclick="showEditPriceModal(${item.id})" title="Klik untuk edit harga">
+                            ${formatRupiah(item.beli)}
+                            <i class="fas fa-edit edit-price-icon"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- HARGA JUAL -->
+                    <div class="harga-item">
+                        <span class="harga-label">Jual:</span>
+                        <div class="harga-value" onclick="showEditPriceModal(${item.id})" title="Klik untuk edit harga" style="color: #dc2626; border-color: rgba(220, 38, 38, 0.3); background: rgba(220, 38, 38, 0.1);">
+                            ${formatRupiah(item.jual)}
+                            <i class="fas fa-edit edit-price-icon" style="color: #dc2626;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- BAGIAN KANAN: STOK & HAPUS -->
+            <div class="product-actions">
+                <!-- KONTROL STOK -->
                 <div class="stock-control">
                     <div class="stock-label">STOK</div>
                     <div class="stock-value">${item.stok}</div>
                     <div class="stock-buttons">
-                        <button class="stock-btn" onclick="ubahStok(${item.id}, -1)">-</button>
-                        <button class="stock-btn" onclick="ubahStok(${item.id}, 1)">+</button>
+                        <button class="stock-btn minus" onclick="ubahStok(${item.id}, -1)" title="Kurangi stok">-</button>
+                        <button class="stock-btn plus" onclick="ubahStok(${item.id}, 1)" title="Tambah stok">+</button>
                     </div>
                 </div>
+                
+                <!-- TOMBOL HAPUS -->
+                <button class="delete-btn" onclick="showDeleteConfirm(${item.id})" title="Hapus produk">
+                    <i class="fas fa-trash"></i> HAPUS PRODUK
+                </button>
             </div>
         </div>
     `).join('');
 }
 
-// Change Stock
+// FUNGSI ubahStok (TAMBAH/KURANGI STOK) - TAMPILKAN LEBIH BAIK
 function ubahStok(id, val) {
     const index = database.findIndex(x => x.id === id);
     if (index !== -1) {
         const newStock = Math.max(0, database[index].stok + val);
+        const oldStock = database[index].stok;
         database[index].stok = newStock;
         saveToLocalStorage();
         renderData();
         
-        // Show stock change notification
+        // Show stock change notification dengan animasi
         const produk = database[index];
-        const action = val > 0 ? 'ditambah' : 'dikurangi';
-        showToast(`📦 ${produk.nama} ${action} menjadi ${newStock}`, 'success');
-    }
-}
-
-// Show Delete Confirmation
-function showDeleteConfirm(id) {
-    const produk = database.find(x => x.id === id);
-    if (!produk) return;
-    
-    confirmTitle.textContent = 'Hapus Produk';
-    confirmMessage.textContent = `Yakin hapus "${produk.nama}"?`;
-    confirmOk.dataset.id = id;
-    confirmModal.classList.add('show');
-}
-
-// Handle Confirm
-function handleConfirm() {
-    const id = parseInt(confirmOk.dataset.id);
-    database = database.filter(x => x.id !== id);
-    saveToLocalStorage();
-    renderData();
-    confirmModal.classList.remove('show');
-    showToast('🗑️ Produk dihapus', 'success');
-}
-
-// Export Data
-function exportData() {
-    if (database.length === 0) {
-        showToast('❌ Tidak ada data untuk dibackup!', 'warning');
-        return;
-    }
-    
-    const dataStr = JSON.stringify(database, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `backup_stok_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    showToast('✅ Backup berhasil didownload!', 'success');
-}
-
-// Import Data
-function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const importedData = JSON.parse(e.target.result);
-            if (Array.isArray(importedData)) {
-                // Show confirmation before overwriting
-                if (confirm('Data lama akan diganti dengan data backup. Lanjutkan?')) {
-                    database = importedData;
-                    saveToLocalStorage();
-                    showToast('✅ Data berhasil dipulihkan!', 'success');
-                    setTimeout(() => location.reload(), 1000);
-                }
-            } else {
-                showToast('❌ Format file tidak valid!', 'error');
-            }
-        } catch (err) {
-            showToast('❌ Gagal membaca file backup', 'error');
-            console.error(err);
+        const action = val > 0 ? 'ditambahkan' : 'dikurangi';
+        const icon = val > 0 ? '📈' : '📉';
+        
+        // Highlight stok yang berubah
+        const productCard = document.querySelector(`.product-card[data-id="${id}"] .stock-value`);
+        if (productCard) {
+            productCard.style.transform = 'scale(1.2)';
+            productCard.style.color = val > 0 ? '#10b981' : '#ef4444';
+            setTimeout(() => {
+                productCard.style.transform = 'scale(1)';
+                productCard.style.color = '';
+            }, 300);
         }
-    };
-    reader.readAsText(file);
-    
-    // Reset file input
-    event.target.value = '';
-}
-
-// Save to Local Storage
-function saveToLocalStorage() {
-    localStorage.setItem('stok_app_db', JSON.stringify(database));
-}
-
-// Toggle Theme
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
-    
-    showToast(`🌓 Tema ${newTheme === 'dark' ? 'gelap' : 'terang'} diaktifkan`, 'success');
-}
-
-// Update Theme Icon
-function updateThemeIcon(theme) {
-    const icon = themeToggle.querySelector('i');
-    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-}
-
-// Install App
-async function installApp() {
-    if (!deferredPrompt) return;
-    
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-        showToast('📱 Aplikasi sedang diinstal...', 'success');
+        
+        showToast(`${icon} Stok ${produk.nama} ${action}: ${oldStock} → ${newStock}`, 'success');
     }
-    
-    deferredPrompt = null;
-    installBtn.style.display = 'none';
 }
-
-// Show Toast
-function showToast(message, type = 'info') {
-    toast.textContent = message;
-    toast.className = `toast ${type}`;
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
-}
-
-// Format Rupiah
-function formatRupiah(number) {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-    }).format(number);
-}
-
-// Escape HTML
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Keyboard Shortcuts
-document.addEventListener('keydown', (e) => {
-    // Ctrl+S to save
-    if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        simpanData();
-    }
-    
-    // Esc to close modal
-    if (e.key === 'Escape') {
-        confirmModal.classList.remove('show');
-    }
-    
-    // Ctrl+F to focus search
-    if (e.ctrlKey && e.key === 'f' && pageList.classList.contains('active')) {
-        e.preventDefault();
-        searchInput.focus();
-    }
-    
-    // Ctrl+B to backup
-    if (e.ctrlKey && e.key === 'b' && pageHome.classList.contains('active')) {
-        e.preventDefault();
-        exportData();
-    }
-});
-
-// Offline Detection
-window.addEventListener('online', () => {
-    showToast('🌐 Koneksi internet kembali', 'success');
-});
-
-window.addEventListener('offline', () => {
-    showToast('📴 Anda sedang offline. Data disimpan secara lokal.', 'warning');
-});
-
-// Auto-focus on page load
-window.addEventListener('load', () => {
-    const namaInput = document.getElementById('nama');
-    if (namaInput && pageHome.classList.contains('active')) {
-        setTimeout(() => namaInput.focus(), 500);
-    }
-});
